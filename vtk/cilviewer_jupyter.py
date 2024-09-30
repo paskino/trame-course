@@ -63,16 +63,12 @@ class iviewer:
                     step=1,
                     hide_details=True, style="max-width: 300px",
                 )
-                v3.VLabel(" {{ view_slice }} double it {{ view_slice * 2 }}")
+                v3.VLabel("Current slice {{ view_slice }} ")
                 v3.VDivider(vertical=True, classes="mx-2")
                 v3.VBtn(icon="mdi-undo-variant", click=self.reset_resolution)
 
             with layout.content:
                 with v3.VContainer(fluid=True, classes="pa-0 fill-height"):
-                    # view = vtk_widgets.VtkRemoteView(
-                    #     self.render_window, 
-                    #     interactive_ratio=1,
-                    # )
                     self.html_view = vtk_widgets.VtkRemoteView(self.cil_viewer.renWin, trame_server=self.server, ref="view")
                     self.ctrl.view_update = self.html_view.update
                     self.ctrl.view_reset_camera = self.html_view.reset_camera
