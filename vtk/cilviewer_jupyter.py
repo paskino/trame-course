@@ -26,11 +26,23 @@ class iviewer:
     def _init_vtk(self):
         self.cil_viewer = CILViewer2D.CILViewer2D(enableSliderWidget=False)
         self.cil_viewer.renWin.SetOffScreenRendering(1)
+        self._add_observers()
 
+    def _add_observers(self):
+        """Add observer to sync the view slice with the mouse wheel event"""
+        style = self.cil_viewer.style
+        priority = 1 - 0.1
+        style.AddObserver("MouseWheelForwardEvent", self._handle_mouse_wheel, priority)
+        style.AddObserver("MouseWheelBackwardEvent", self._handle_mouse_wheel, priority)
+    
+    def _handle_mouse_wheel(self, obj, event):
+        """Update the view slice when the mouse wheel is used"""
+        self.view_slice = self.cil_viewer.getActiveSlice()
+        
     def setInput(self, image):
         self.cil_viewer.setInputData(image)
+        # TODO find a way to set the slider limits after the ui has been built
         self._build_ui()
-
 
     def _build_ui(self):
         with SinglePageLayout(self.server, full_height=True) as layout:
