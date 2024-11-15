@@ -88,6 +88,61 @@ class Cone:
                     self.ctrl.view_update = view.update
                     self.ctrl.view_reset_camera = view.reset_camera
 
+from ccpi.viewer import CILViewer2D
+@TrameApp()
+class iviewer:
+    
+    def __init__(self, server=None):
+        self.server = get_server(server)
+        self._init_vtk()
+        self._build_ui()
+
+    @property
+    def state(self):
+        return self.server.state
+
+    @property
+    def ctrl(self):
+        return self.server.controller
+    def _init_vtk(self):
+        self.cil_viewer = CILViewer2D.CILViewer2D()
+        self.cil_viewer.renWin.SetOffScreenRendering(1)
+
+    def setInput(self, image):
+        self.cil_viewer.setInputData(image)
+
+    def _build_ui(self):
+        with SinglePageLayout(self.server, full_height=True) as layout:
+            self.ui = layout
+
+            layout.icon.click = self.ctrl.view_reset_camera
+            layout.title.set_text("CILViewer in jupyter lab!")
+
+            with layout.toolbar:
+                v3.VSpacer()
+                v3.VSlider(
+                    v_model=("resolution", 6),
+                    min=3, max=60, step=1,
+                    hide_details=True, style="max-width: 300px",
+                )
+                v3.VDivider(vertical=True, classes="mx-2")
+                v3.VBtn(icon="mdi-undo-variant", click=self.reset_resolution)
+
+            with layout.content:
+                with v3.VContainer(fluid=True, classes="pa-0 fill-height"):
+                    # view = vtk_widgets.VtkRemoteView(
+                    #     self.render_window, 
+                    #     interactive_ratio=1,
+                    # )
+                    self.html_view = vtk_widgets.VtkRemoteView(self.cil_viewer.renWin, trame_server=self.server, ref="view")
+                    self.ctrl.view_update = self.html_view.update
+                    self.ctrl.view_reset_camera = self.html_view.reset_camera
+                    self.ctrl.on_server_ready.add(self.html_view.update)
+                    # self.ctrl.view_update = view.update
+                    # self.ctrl.view_reset_camera = view.reset_camera
+    def reset_resolution(self):
+        self.resolution = 6
+
 def main():
     cone_app = Cone()
     cone_app.server.start()

@@ -8,6 +8,10 @@ state, ctrl = server.state, server.controller
 
 DEFAULT_RESOLUTION = 6
 
+# the processing of the scene is done on the server side
+# the rendering is done on the client side
+# the server sends the scene to the client as polydata
+
 def create_vtk_pipeline():
     renderer, render_window = vtk.vtkRenderer(), vtk.vtkRenderWindow()
     render_window.AddRenderer(renderer)
@@ -22,7 +26,7 @@ def create_vtk_pipeline():
     actor.SetMapper(mapper)
     renderer.AddActor(actor)
     renderer.ResetCamera()
-    render_window.Render()
+    # render_window.Render() # removes the remote (server side) OpenGL window render
 
     return render_window, cone
 render_window, cone = create_vtk_pipeline()
@@ -40,19 +44,23 @@ with SinglePageLayout(server, full_height=True) as layout:
     layout.title.set_text("VTK Local Rendering")
 
     with layout.toolbar:
-        v3.VSpacer()
+        
         v3.VSlider(
             v_model=("resolution", DEFAULT_RESOLUTION),
             min=3, max=60, step=1,
             hide_details=True, style="max-width: 300px",
         )
+        v3.VSpacer()
+        v3.VLabel(" {{ resolution }} double it {{ resolution * 2 }}")
         v3.VDivider(vertical=True, classes="mx-2")
         v3.VBtn(icon="mdi-undo-variant", click=reset_resolution)
 
     with layout.content:
         with v3.VContainer(fluid=True, classes="pa-0 fill-height"):
-            view = vtk_widgets.VtkLocalView(render_window)
-            ctrl.view_update = view.update
+            #view = vtk_widgets.VtkLocalView(render_window) # LocalView processes the interaction by default
+            view = vtk_widgets.VtkRemoteView(render_window) # LocalView processes the interaction by default
+            # save these to the controller to be able to call them from the server side
+            ctrl.view_update = view.update 
             ctrl.view_reset_camera = view.reset_camera
 
 server.start()
