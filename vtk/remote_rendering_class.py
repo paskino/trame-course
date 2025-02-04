@@ -89,6 +89,7 @@ class Cone:
                     self.ctrl.view_reset_camera = view.reset_camera
 
 from ccpi.viewer import CILViewer2D
+from ccpi.viewer import viewer3D
 @TrameApp()
 class iviewer:
     
@@ -105,11 +106,13 @@ class iviewer:
     def ctrl(self):
         return self.server.controller
     def _init_vtk(self):
-        self.cil_viewer = CILViewer2D.CILViewer2D()
+        # self.cil_viewer = 
+        self.cil_viewer = viewer3D()
         self.cil_viewer.renWin.SetOffScreenRendering(1)
 
     def setInput(self, image):
         self.cil_viewer.setInputData(image)
+        self.cil_viewer.style.ToggleVolumeVisibility()
 
     def _build_ui(self):
         with SinglePageLayout(self.server, full_height=True) as layout:
@@ -147,6 +150,14 @@ def main():
     cone_app = Cone()
     cone_app.server.start()
 
+def main_edo():
+    cone_app = iviewer()
+    import vtk
+    reader = vtk.vtkMetaImageReader()
+    reader.SetFileName('head_uncompressed.mha')
+    reader.Update()
+    cone_app.setInput(reader.GetOutput())
+    cone_app.server.start()
 
 if __name__ == "__main__":
-    main()
+    main_edo()
